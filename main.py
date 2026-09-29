@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import modules.restaurant as rstr
-import modules.errorHandling as err
+import modules.Errorhandling as err
 
 #login
 users = {}
