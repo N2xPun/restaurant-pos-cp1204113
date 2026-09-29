@@ -1,5 +1,23 @@
 import numpy as np
 
+class User:
+    def __init__(self, name: str, position: str, password: str):
+        self.__name = name
+        self.__position = position
+        self.__password = password
+
+    @property
+    def Name(self) -> str:
+        return self.__name
+
+    @property
+    def Position(self) -> str:
+        return self.__position
+
+    @property
+    def Password(self) -> str:
+        return self.__password
+
 class Ingredient:
     def __init__(self, name: str):
         self.__name = name
