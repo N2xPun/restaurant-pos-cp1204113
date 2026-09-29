@@ -57,10 +57,10 @@ daily_orders = []
 
 if loginSucceded:
     try:
-        with open("menu_ingredients.txt", "r", encoding="utf-8") as f:
+        with open("data/menu_ingredient.txt", "r", encoding="utf-8") as f:
             menu_data = json.load(f)
 
-        with open("menu_price.txt", "r", encoding="utf-8") as f:
+        with open("data/menu_price.txt", "r", encoding="utf-8") as f:
             price_data = json.load(f)
             prices = dict(price_data)
 
@@ -71,10 +71,10 @@ if loginSucceded:
                 "price": prices.get(name, 0)
             })
 
-        with open("ingredient_amount.txt", "r", encoding="utf-8") as f:
+        with open("data/ingredient_amount.txt", "r", encoding="utf-8") as f:
             stock_dict = json.load(f)
 
-        with open("amount.txt", "r", encoding="utf-8") as f:
+        with open("data/amount.txt", "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -86,7 +86,9 @@ if loginSucceded:
     except Exception as e:
         print(f"Error loading data files: {e}")
 
-
+print(menu_list)
+print(stock_dict)
+print(daily_orders)
 
 #main
 while loginSucceded:
