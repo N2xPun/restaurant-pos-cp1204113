@@ -1,10 +1,11 @@
+import json
+import numpy as np
 import modules.restaurant as rstr
 import modules.errorHandling as err
 
 #login
 users = {}
 
-#test
 print("Login")
 with open("data/Users.csv") as usersFile:
     raw = usersFile.read().splitlines()[1:]
@@ -49,6 +50,41 @@ while True:
         break
     finally:
         attempt += 1
+
+menu_list = []
+stock_dict = {}
+daily_orders = []
+
+if loginSucceded:
+    try:
+        with open("menu_ingredients.txt", "r", encoding="utf-8") as f:
+            menu_data = json.load(f)
+
+        with open("menu_price.txt", "r", encoding="utf-8") as f:
+            price_data = json.load(f)
+            prices = dict(price_data)
+
+        for name, ingredients in menu_data.items():
+            menu_list.append({
+                "name": name,
+                "ingredients": ingredients,
+                "price": prices.get(name, 0)
+            })
+
+        with open("ingredient_amount.txt", "r", encoding="utf-8") as f:
+            stock_dict = json.load(f)
+
+        with open("amount.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    data = line.strip("[]").split(",")
+                    daily_orders.append([int(x.strip()) for x in data])
+
+        print(f"Loaded {len(menu_list)} menu items and stock successfully.\n")
+
+    except Exception as e:
+        print(f"Error loading data files: {e}")
 
 #main
 while loginSucceded:
