@@ -1,23 +1,5 @@
 import numpy as np
 
-class User:
-    def __init__(self, name: str, position: str, password: str):
-        self.__name = name
-        self.__position = position
-        self.__password = password
-
-    @property
-    def Name(self) -> str:
-        return self.__name
-
-    @property
-    def Position(self) -> str:
-        return self.__position
-
-    @property
-    def Password(self) -> str:
-        return self.__password
-
 class Ingredient:
     def __init__(self, name: str):
         self.__name = name
@@ -49,6 +31,9 @@ class Menu:
 
     def __str__(self) -> str:
         return f"{self.Name} - ${self.Price // 100}.{self.Price % 100}"
+
+    def __len__(self) -> int:
+        return len(self.Name)
 
     def displayIngredients(self) -> str:
         res = f"{self}\nRequires"
