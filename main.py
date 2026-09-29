@@ -4,6 +4,7 @@ import modules.errorHandling as err
 #login
 users = {}
 
+#test
 print("Login")
 with open("data/Users.csv") as usersFile:
     raw = usersFile.read().splitlines()[1:]
