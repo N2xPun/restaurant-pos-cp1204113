@@ -1,71 +1,56 @@
 import modules.restaurant as rstr
-import modules.Errorhandling as err
+import modules.errorHandling as err
 
 #login
+users = {}
+
 print("Login")
-with open("data/User.csv") as datauser:
-    datauser2 = datauser.read().splitlines()
-    All_User = dict()
-    Check_Headling = 1
-    for i in datauser2:
-        username_temp,position_temp,password_temp = i.split(",")
-        if username_temp not in All_User:
-            All_User[username_temp] = [position_temp,password_temp]
+with open("data/Users.csv") as usersFile:
+    raw = usersFile.read().splitlines()[1:]
+    for i in raw:
+        username, position, password = i.split(",")
+        users[username] = {"position": position, "password": password}
+
 while True:
     username = input("Username: ")
     try:
-        if username == "" :
-            raise err.InvalidUsernameError("Error: Username cannot be empty.")
-        if username not in All_User:
-            raise err.UserNotFoundError(f"Error: User '{username}' does not exist.")
+        if username == "":
+            raise err.InvalidUsernameError("Username cannot be empty.\n")
+        if username not in users:
+            raise err.UserNotFoundError(f"Cannot find user '{username}'.\n")
         
     except err.InvalidUsernameError as e:
         print(e)
     except err.UserNotFoundError as e:
         print(e)
     else:
-        print("Username verified.")
         break
-    finally:
-        print("Username verification completed.")
-        print()
         
-time = 1
+attempt = 1
+loginSucceded = False
 while True:
-
     password = input("Password: ")
     
     try:
-        if password == All_User[username][1]:
-            print(f"Login successful! Welcome, {All_User[username][0]} {username}.")
-            position = All_User[username][0]
+        if password == users[username]["password"]:
+            print(f"Login successful! Welcome, {users[username]["position"]} {username}.\n")
+            position = users[username]["position"]
+            loginSucceded = True
             break
-        elif time ==3:
-            raise err.AccountLockedError(f"Error: Account '{username}' has been locked.")
-        elif password != All_User[username][1] :
-            raise err.AuthenticationError(f"Error: Incorrect password. Attempt {time} of 3.")
-
-        
+        elif attempt == 3:
+            raise err.LoginError(f"Login failed.\n")
+        else:
+            raise err.AuthenticationError(f"Incorrect password. Attempt {attempt} of 3.\nTry again.\n")
     except err.AuthenticationError as e:
         print(e)
-        print("Enter password again.")
-        
-        
-    except err.AccountLockedError as e:
+    except err.LoginError as e:
         print(e)
-        print("Login failed.")
         break
     finally:
-        time += 1
-        print("Login attempt completed.")
-        print()
-    
-
-
-
+        attempt += 1
 
 #main
-while True:
+while loginSucceded:
     raw = input("Select action (-1 - 4, 0 for help, -1 for exit): ")
 
     try:
@@ -92,10 +77,4 @@ while True:
             pass
         case 3:
             # manage stock - only accesible to managers
-            print(f"manage stock - only accesible to managers")
-            if position != "manager":
-                print("You do not have access to Manage stock")
-                continue
-            
-
             pass
