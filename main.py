@@ -86,9 +86,27 @@ if loginSucceded:
     except Exception as e:
         print(f"Error loading data files: {e}")
 
-print(menu_list)
-print(stock_dict)
-print(daily_orders)
+for ingredient_name, ingredient_amount in stock_dict.items():
+    stock_dict[ingredient_name] = rstr.Ingredient(
+        name=ingredient_name,
+        amount=ingredient_amount
+    )
+
+raw_menu_list = menu_list.copy() #ข้อมูลดิบ
+menu_list = []
+
+for menu_item in raw_menu_list:
+    recipe_ingredients = {}
+    for ingredient_name, required_quantity in menu_item["ingredients"].items():
+        ingredient_object = stock_dict[ingredient_name]
+        recipe_ingredients[ingredient_object] = np.int64(required_quantity)
+
+    menu_object = rstr.Menu(
+        name=menu_item["name"],
+        price=np.int64(menu_item["price"]),
+        ingredients=recipe_ingredients
+    )
+    menu_list.append(menu_object)
 
 #main
 while loginSucceded:

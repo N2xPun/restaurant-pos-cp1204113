@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class User:
     def __init__(self, name: str, position: str, password: str):
         self.__name = name
@@ -19,12 +20,17 @@ class User:
         return self.__password
 
 class Ingredient:
-    def __init__(self, name: str):
+    def __init__(self, name: str, amount: int): #amount = วัตถุดิบที่เก็บไว้ทั้งหมด
         self.__name = name
+        self.__amount = amount
 
     @property
     def Name(self) -> str:
         return self.__name
+
+    @property
+    def Amount(self) -> int:
+        return self.__amount
 
     def __str__(self) -> str:
         return self.Name
