@@ -1,3 +1,4 @@
+from datetime import datetime as dt
 import json
 import numpy as np
 import modules.restaurant as rstr
@@ -33,14 +34,14 @@ while True:
     password = input("Password: ") 
     try:
         if password == users[username]["password"]:
-            print(f"Login successful! Welcome, {users[username]["position"]} {username}.\n")
+            print(f"Login successful! Welcome, {users[username]["position"]} {username}.")
             position = users[username]["position"]
             loginSucceded = True
             break
         elif attempt == 3:
             raise err.LoginError(f"Login failed.\n")
         else:
-            raise err.AuthenticationError(f"Incorrect password. Attempt {attempt} of 3.\nTry again.\n")
+            raise err.AuthenticationError(f"Incorrect password. Attempt {attempt} of 3. Try again.")
     except err.AuthenticationError as e:
         print(e)
     except err.LoginError as e:
@@ -51,7 +52,7 @@ while True:
 
 menu = set[rstr.Menu]()
 stock = dict[rstr.Ingredient, np.int64]()
-daily_orders = np.ndarray([], dtype = np.int64)
+record = dict[str, dict[str, np.int64]]()
 
 loadDataSucceded = False
 if loginSucceded:
@@ -70,27 +71,25 @@ if loginSucceded:
             for ing, amt in json.load(f).items():
                 stock[ing] = amt
 
-        # why are daily orders not name indexed?
-        # Also, you don't even know what days are these.
-        with open("data/amount.txt", encoding="utf-8") as f:
-            daily_orders = np.array(list(map(eval, f.readlines())), dtype = np.int64, ndmin = 2, ndmax = 2)
+        with open("data/amount.json", encoding="utf-8") as f:
+            record = dict(json.load(f))
         
     except Exception as e:
         print(f"Error loading data files: {e}")
     else:
         loadDataSucceded = True
-        print(f"Loaded {len(menu)} menu items and stock successfully.")
-        print("Menu:")
-        for m in menu:
-            print(f"  {m}")
+        # print(f"Loaded {len(menu)} menu items and stock successfully.")
+        # print("Menu:")
+        # for m in menu:
+        #     print(f"  {m}")
 
-        print("\nStock:")
-        for s in stock:
-            print(f"  {s} : {stock[s]}")
+        # print("\nStock:")
+        # for s in stock:
+        #     print(f"  {s} : {stock[s]}")
 
-        print("\nOrders:")
-        for o in daily_orders:
-            print(f"  {o}")
+        # print("\nOrders:")
+        # for o in record:
+        #     print(f"  {o}: {record[o]}")
 
 #main
 while loginSucceded and loadDataSucceded:
@@ -111,10 +110,55 @@ while loginSucceded and loadDataSucceded:
             break
         case 0:
             # manage stock should only appear to managers when login is implemented
-            print("1 - Record today's data\n2 - View statistics\n3 - Manage stock")
+            print("1 - Record data\n2 - View statistics\n3 - Manage stock")
         case 1:
-            # record today's data
-            pass
+            # records data
+            print("Record data")
+            while True:
+                raw = input("\nEnter the date for this data (format: YYYY-MM-DD, Enter nothing for today): ")
+                try:
+                    rdate = dt.fromisoformat(raw) if raw != "" else dt.today().date()
+                    break
+                except Exception as e:
+                    print(f"Invalid date: {e}")
+            
+            print("\nRecord item sale by entering the format \"<menu name> <amount sold>\".\nCancel by entering \"c\".\nStop by entering nothing.")
+            print(f"Menu:\n  {", ".join([m.Name for m in sorted(menu)])}")
+            drecord = {}
+            while True:
+                raw = input("  ").strip()
+                if raw == "" or raw == "c":
+                    break
+
+                try:
+                    item, amount = raw.split(" ")
+                    if item not in menu:
+                        raise ValueError(f"Item \"{item}\" doesn't exist.")
+                    amount = int(amount)
+                    if amount < 1:
+                        raise ValueError(f"Amount sold has to be positive.")
+                except Exception as e:
+                    print(f"Invalid record: {e}")
+                else:
+                    if item in drecord:
+                        overw = ""
+                        while overw not in {"y", "n"}:
+                            overw = input("Item is already in this record. Did you want to overwrite (y/n)?: ").lower()
+                        if overw == "y":
+                            drecord[item] = amount
+                    else:
+                        drecord[item] = amount
+
+            if raw != "c" and len(drecord) > 0:
+                record[rdate.isoformat()] = drecord
+                with open("data/amount.json", "w", encoding = "utf-8") as amtfs:
+                    amtfs.write(json.dumps(record, indent = 4, ensure_ascii = False))
+
+                print(f"Data recorded\nDate {rdate.isoformat()}:")
+                for r in drecord:
+                    print(f"  {r}: {drecord[r]}")
+            else:
+                print("Action cancelled")
         case 2:
             # view statistics
             pass
