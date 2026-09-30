@@ -114,6 +114,7 @@ while loginSucceded and loadDataSucceded:
             print("1 - Record today's data\n2 - View statistics\n3 - Manage stock")
         case 1:
             # record today's data
+            print("Record today data")
             pass
         case 2:
             # view statistics
