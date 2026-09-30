@@ -1,8 +1,12 @@
-from datetime import datetime as dt
+from datetime import date as dt
 import json
 import numpy as np
 import modules.restaurant as rstr
 import modules.errorHandling as err
+
+def saveStock(stock: dict[rstr.Ingredient, np.int64], path: str):
+    with open(path, "w", encoding = "utf-8") as sfs:
+        sfs.write(json.dumps(dict([(i.Name, int(stock[i])) for i in stock]), indent = 4, ensure_ascii = False))
 
 #login
 users = {}
@@ -30,6 +34,7 @@ while True:
         
 attempt = 1
 loginSucceded = False
+position = "Cashier"
 while True:
     password = input("Password: ") 
     try:
@@ -69,7 +74,7 @@ if loginSucceded:
 
         with open("data/ingredient_amount.json", encoding="utf-8") as f:
             for ing, amt in json.load(f).items():
-                stock[ing] = amt
+                stock[rstr.Ingredient(ing)] = amt
 
         with open("data/amount.json", encoding="utf-8") as f:
             record = dict(json.load(f))
@@ -93,7 +98,7 @@ if loginSucceded:
 
 #main
 while loginSucceded and loadDataSucceded:
-    raw = input("\nSelect action (-1 - 4, 0 for help, -1 for exit): ")
+    raw = input("\nSelect action (-1 - 4, 0 for help, -1 to exit): ")
 
     try:
         act = int(raw)
@@ -110,14 +115,14 @@ while loginSucceded and loadDataSucceded:
             break
         case 0:
             # manage stock should only appear to managers when login is implemented
-            print("1 - Record data\n2 - View statistics\n3 - Manage stock")
+            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n0 - Show this help message\n-1 - Exit program")
         case 1:
             # records data
             print("Record data")
             while True:
                 raw = input("\nEnter the date for this data (format: YYYY-MM-DD, Enter nothing for today): ")
                 try:
-                    rdate = dt.fromisoformat(raw) if raw != "" else dt.today().date()
+                    rdate = dt.fromisoformat(raw) if raw != "" else dt.today()
                     break
                 except Exception as e:
                     print(f"Invalid date: {e}")
@@ -134,7 +139,7 @@ while loginSucceded and loadDataSucceded:
                     item, amount = raw.split(" ")
                     if item not in menu:
                         raise ValueError(f"Item \"{item}\" doesn't exist.")
-                    amount = int(amount)
+                    amount = np.int64(amount)
                     if amount < 1:
                         raise ValueError(f"Amount sold has to be positive.")
                 except Exception as e:
@@ -165,13 +170,13 @@ while loginSucceded and loadDataSucceded:
         case 3:
             # manage stock - only accesible to managers
             if position != "Manager":
-                print("You do not have the authority to manage stock.")
+                print("You do not have the permission to manage stock.")
                 continue
-            print()
-            print("Start manage stock")
+
+            print("\nStock Management")
             while True:
                 try:
-                    raw = input("\nSelect action for manage stock (-1 - 4, 0 for help, -1 for exit): ")
+                    raw = input("\nSelect action for stock management (-1 - 4, 0 for help, -1 to exit): ")
                     act = int(raw)
                     if act < -1 or act > 5:
                         raise ValueError("Action is out of range")
@@ -181,91 +186,77 @@ while loginSucceded and loadDataSucceded:
                 match act:
                     case -1:
                         # Cancel stock management
-                        print("stock management complete.")
+                        print("Stock management complete.")
                         break
                     case 0:
-                        print("1 - Increase ingredients.\n2 - Reduce ingredients.\n3 - Add new ingredients.\n4 - Remove ingredients.")
+                        print("1 - Stock an ingredient.\n2 - Remove some of an ingredient.\n3 - Add a new ingredient.\n4 - Remove an ingredient.\n0 - Show this help message.\n-1 - Exit stock management.")
                     case 1:
                         # Increase ingredients.
-                        print("Increase ingredients.")
+                        print("Stock an ingredient.")
                         try:
-                            ingre,raw_quantity = input("ingredients and quantity [ Ex.พริก,30 ]: ").split(",")
+                            print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
+                            ingre, raw_quantity = input("Ingredient and quantity (format: <ingredient name> <quantity>): ").split(" ")
+                            ingre = rstr.Ingredient(ingre)
                             if ingre not in stock:
                                 raise KeyError(f"{ingre} not in stock.")
-                            quantity = int(raw_quantity)
+                            quantity = np.int64(raw_quantity)
                             if quantity < 0 :
                                 raise err.QuantityError(f"Please enter the ingredient quantity as a positive integer.")
-                        except KeyError as e:
-                            print(f"Invalid action\n{e}")
-                        except ValueError:
-                            print(f"Invalid action\nPlease enter the ingredient quantity as a positive integer.")
-                        except err.QuantityError as e:
-                            print(f"Invalid action\n{e}")
-                        except Exception:
-                            print(f"Invalid action\nInput Error.")
+                        except Exception as e:
+                            print(f"Invalid ingredient\n{e}")
                         else:
                             stock[ingre] += quantity
-                            print(f"Increase ingredients succeded.")
+                            saveStock(stock, "data/ingredient_amount.json")
+                            print(f"Stocked {quantity} {ingre}.")
                     case 2:
                         # Reduce ingredients.
-                        print("Reduce ingredients.")
+                        print("Remove some of an ingredient.")
+                        print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
                         try:
-                            ingre,raw_quantity = input("ingredients and quantity [ Ex.พริก,30 ]: ").split(",")
+                            ingre, raw_quantity = input("Ingredient and quantity (format: <ingredient name> <quantity>): ").split(" ")
+                            ingre = rstr.Ingredient(ingre)
                             if ingre not in stock:
                                 raise KeyError(f"{ingre} not in stock.")
-                            quantity = int(raw_quantity)
+                            quantity = np.int64(raw_quantity)
                             if stock[ingre] - quantity < 0:
-                                raise err.StockError(f"Insufficient ingredient. There are {stock[ingre]} of {ingre}.")
-                        except KeyError as e:
-                            print(f"Invalid action\n{e}")
-                        except ValueError:
-                            print(f"Invalid action\nPlease enter the ingredient quantity as a positive integer.")
-                        except err.StockError as e:
-                            print(f"Invalid action\n{e}")
-                        except Exception:
-                            print(f"Invalid action\nInput Error")
+                                raise err.StockError(f"Insufficient ingredient. There are only {stock[ingre]} of {ingre}, but tried to throw out {quantity}.")
+                        except Exception as e:
+                            print(f"Invalid ingredient\n{e}")
                         else:
                             stock[ingre] -= quantity
-                            print(f"Reduce ingredients succeded.")
+                            saveStock(stock, "data/ingredient_amount.json")
+                            print(f"Removed {quantity} {ingre}.")
                     case 3:
                         # Add new ingredients.
-                        print("Add new ingredients.")
+                        print("Add a new ingredient.")
                         try:
-                            ingre,raw_quantity = input("ingredients and quantity [ Ex.ไก่,10 ]: ").split(",")
+                            ingre, raw_quantity = input("Ingredient and quantity (format: <ingredient name> <quantity>): ").split(" ")
+                            ingre = rstr.Ingredient(ingre)
                             if ingre in stock:
                                 raise err.StockError(f"{ingre} already in stock.")
-                            quantity = int(raw_quantity)
+                            quantity = np.int64(raw_quantity)
                             if quantity < 0 :
                                 raise err.QuantityError(f"Please enter the ingredient quantity as a positive integer.")
-                        except err.QuantityError as e:
-                            print(f"Invalid action\n{e}")
-                        except ValueError:
-                            print(f"Invalid action\nPlease enter the ingredient quantity as a positive integer.")
-                        except err.StockError as e:
-                            print(f"Invalid action\n{e}")
-                        except Exception:
-                            print(f"Invalid action\nInput Error")
+                        except Exception as e:
+                            print(f"Invalid ingredient\n{e}")
                         else:
                             stock[ingre] = quantity
-                            print(f"Add new ingredients succeded.")
+                            saveStock(stock, "data/ingredient_amount.json")
+                            print(f"Added {quantity} {ingre}.")
                     case 4:
                         # Remove ingredients.
-                        print("Remove ingredients.")
+                        print("Remove an ingredient.")
+                        print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
                         try:
-                            ingre = input("ingredients [ Ex.ไก่ ]: ")
+                            ingre = rstr.Ingredient(input("Ingredient: "))
                             if ingre not in stock:
                                 raise KeyError(f"{ingre} not in stock.")
-                            
-                        except KeyError as e:
-                            print(f"Invalid action\n{e}")
-                        except Exception:
-                            print(f"Invalid action\nInput Error")
+                        except Exception as e:
+                            print(f"Invalid ingredient\n{e}")
                         else:
                             del stock[ingre]
-                            print(f"Remove ingredients succeded.")
-
-
-
+                            saveStock(stock, "data/ingredient_amount.json")
+                            print(f"Removed {ingre}.")
         case 4:
             # add met - only accesible to managers
             pass

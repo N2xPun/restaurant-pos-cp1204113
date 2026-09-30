@@ -8,6 +8,22 @@ class Ingredient:
     def Name(self) -> str:
         return self.__name
 
+    def __hash__(self) -> int:
+        return hash(self.__name)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Ingredient):
+            return other.__name == self.__name
+        elif isinstance(other, str):
+            return other == self.__name
+        return False
+
+    def __lt__(self, other: Ingredient | str) -> bool:
+        if isinstance(other, Ingredient):
+            return self.__name < other.__name
+        else:
+            return self.__name < other
+
     def __str__(self) -> str:
         return self.Name
 
@@ -44,9 +60,9 @@ class Menu:
 
     def __lt__(self, other: Menu | str) -> bool:
         if isinstance(other, Menu):
-            return other.__name < self.__name
-        elif isinstance(other, str):
-            return other < self.__name
+            return self.__name < other.__name
+        else:
+            return self.__name < other
 
     def displayIngredients(self) -> str:
         res = f"{self}\nRequires"
