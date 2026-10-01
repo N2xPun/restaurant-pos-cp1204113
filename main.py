@@ -8,6 +8,22 @@ def saveStock(stock: dict[rstr.Ingredient, np.int64], path: str):
     with open(path, "w", encoding = "utf-8") as sfs:
         sfs.write(json.dumps(dict([(i.Name, int(stock[i])) for i in stock]), indent = 4, ensure_ascii = False))
 
+def saveMenu_price(menu: set[rstr.Menu],path: str):
+    with open(path, "w", encoding = "utf-8") as sfs:
+        sfs.write(json.dumps(dict([(i.Name,int(i.Price)) for i in menu]), indent=4, ensure_ascii=False))
+
+#json don't know int.64 and rstr.Ingredient
+#def __init__(self, name: str, price: np.int64, ingredients: dict[Ingredient, np.int64] = {}):
+def saveMenu_ingredient(menu: set[rstr.Menu],path: str): 
+    with open(path, "w", encoding = "utf-8") as sfs:
+        sfs.write( 
+            json.dumps(
+                dict( [(i.Name, dict([(k.Name,int(v)) for k,v in i.Ingredients.items()])) for i in menu] ), 
+                indent=4, 
+                ensure_ascii=False
+                )
+            )
+
 #login
 users = {}
 
@@ -115,7 +131,7 @@ while loginSucceded and loadDataSucceded:
             break
         case 0:
             # manage stock should only appear to managers when login is implemented
-            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n0 - Show this help message\n-1 - Exit program")
+            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n4 - Add a new menu item\n0 - Show this help message\n-1 - Exit program")
         case 1:
             # records data
             print("Record data")
@@ -185,13 +201,13 @@ while loginSucceded and loadDataSucceded:
                     continue
                 match act:
                     case -1:
-                        # Cancel stock management
+                        # Stock management complete.
                         print("Stock management complete.")
                         break
                     case 0:
                         print("1 - Stock an ingredient.\n2 - Remove some of an ingredient.\n3 - Add a new ingredient.\n4 - Remove an ingredient.\n0 - Show this help message.\n-1 - Exit stock management.")
                     case 1:
-                        # Increase ingredients.
+                        # Stock an ingredient.
                         print("Stock an ingredient.")
                         try:
                             print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
@@ -209,7 +225,7 @@ while loginSucceded and loadDataSucceded:
                             saveStock(stock, "data/ingredient_amount.json")
                             print(f"Stocked {quantity} {ingre}.")
                     case 2:
-                        # Reduce ingredients.
+                        # Remove some of an ingredient.
                         print("Remove some of an ingredient.")
                         print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
                         try:
@@ -227,7 +243,7 @@ while loginSucceded and loadDataSucceded:
                             saveStock(stock, "data/ingredient_amount.json")
                             print(f"Removed {quantity} {ingre}.")
                     case 3:
-                        # Add new ingredients.
+                        # Add a new ingredient.
                         print("Add a new ingredient.")
                         try:
                             ingre, raw_quantity = input("Ingredient and quantity (format: <ingredient name> <quantity>): ").split(" ")
@@ -258,5 +274,62 @@ while loginSucceded and loadDataSucceded:
                             saveStock(stock, "data/ingredient_amount.json")
                             print(f"Removed {ingre}.")
         case 4:
-            # add met - only accesible to managers
-            pass
+            # Add a new menu item - only accesible to managers
+            if position != "Manager":
+                print("You do not have the permission to Add a new menu item.")
+                continue
+
+            print("\nAdd a new menu item")
+
+
+            while True:
+                try:
+                    name = input("\nMenu name (enter nothing to finish): ")
+                    if name == "":
+                        print("Finished adding the new menu item.")
+                        break
+                    
+                    price = np.int64(input("Price: "))
+
+                    if any(m.Name == name for m in menu):
+                        raise ValueError(f"Menu item \"{name}\" already exists.")
+
+                    if price < 0:
+                        raise ValueError("Price cannot be negative.")
+
+                    ingredients = {}
+
+                    while True:
+                        raw = input("Ingredient and quantity (format: <Ingredient name> <quantity>) (enter nothing to finish) (c for cancal): ")
+                        if raw.lower() == "c":
+                            print("cancel")
+                            break
+                        if raw == "":
+                            if len(ingredients)==0:
+                                raise ValueError("Menu must have some ingredients") 
+                            break
+
+                        ingre, quantity = raw.split()
+                        ingre = rstr.Ingredient(ingre)
+                        quantity = np.int64(quantity)
+
+                        if ingre not in stock:
+                            print( f"{ingre} not in stock." )
+                            continue
+
+                        if quantity <= 0:
+                            print( "Quantity must be positive." )
+                            continue
+
+                        ingredients[ingre] = quantity
+
+                    menu.add(rstr.Menu(name, price, ingredients))
+
+                    saveMenu_price(menu, "data/menu_price.json")
+                    print("Menu prices saved successfully.")
+                    saveMenu_ingredient(menu, "data/menu_ingredient.json")
+                    print("Menu ingredients saved successfully.")
+                    print(f"Added menu item {name}.")
+
+                except Exception as e:
+                    print(f"Invalid menu item\n{e}")
