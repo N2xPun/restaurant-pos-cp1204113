@@ -56,6 +56,9 @@ class Menu:
     def __str__(self) -> str:
         return f"{self.Name} - ${self.Price // 100}.{self.Price % 100}"
 
+    def __len__(self) -> int:
+        return len(self.Name)
+
     def displayIngredients(self) -> str:
         res = f"{self}\nRequires"
         for i in self.Ingredients:

@@ -20,7 +20,6 @@ while True:
             raise err.InvalidUsernameError("Username cannot be empty.\n")
         if username not in users:
             raise err.UserNotFoundError(f"Cannot find user '{username}'.\n")
-        
     except err.InvalidUsernameError as e:
         print(e)
     except err.UserNotFoundError as e:
@@ -31,8 +30,7 @@ while True:
 attempt = 1
 loginSucceded = False
 while True:
-    password = input("Password: ")
-    
+    password = input("Password: ") 
     try:
         if password == users[username]["password"]:
             print(f"Login successful! Welcome, {users[username]["position"]} {username}.\n")
@@ -51,54 +49,55 @@ while True:
     finally:
         attempt += 1
 
-menu_list = []
-stock_dict = {}
-daily_orders = []
+menu = set[rstr.Menu]()
+stock = dict[rstr.Ingredient, np.int64]()
+daily_orders = np.ndarray([], dtype = np.int64)
 
+loadDataSucceded = False
 if loginSucceded:
     try:
-        with open("data/menu_ingredient.txt", "r", encoding="utf-8") as f:
-            menu_data = json.load(f)
+        with open("data/menu_price.json", encoding="utf-8") as f:
+            prices = dict(json.load(f))
 
-        with open("data/menu_price.txt", "r", encoding="utf-8") as f:
-            price_data = json.load(f)
-            prices = dict(price_data)
+        with open("data/menu_ingredient.json", encoding="utf-8") as f:
+            for name, ingredients_raw in json.load(f).items():
+                ingredients = dict[rstr.Ingredient, np.int64]()
+                for i in ingredients_raw:
+                    ingredients[rstr.Ingredient(i, ingredients_raw[i])] = ingredients_raw[i]
+                menu.add(rstr.Menu(name, prices[name], ingredients))
 
-        for name, ingredients in menu_data.items():
-            menu_list.append({
-                "name": name,
-                "ingredients": ingredients,
-                "price": prices.get(name, 0)
-            })
+        with open("data/ingredient_amount.json", encoding="utf-8") as f:
+            for ing, amt in json.load(f).items():
+                ing_obj = rstr.Ingredient(ing, amt)
+                stock[ing_obj] = amt
 
-        with open("data/ingredient_amount.txt", "r", encoding="utf-8") as f:
-            stock_dict = json.load(f)
-
-        with open("data/amount.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    data = line.strip("[]").split(",")
-                    daily_orders.append([int(x.strip()) for x in data])
-
-        print(f"Loaded {len(menu_list)} menu items and stock successfully.\n")
-
+        # why are daily orders not name indexed?
+        # Also, you don't even know what days are these.
+        with open("data/amount.txt", encoding="utf-8") as f:
+            daily_orders = np.array(list(map(eval, f.readlines())), dtype = np.int64, ndmin = 2, ndmax = 2)
+        
     except Exception as e:
         print(f"Error loading data files: {e}")
+    else:
+        loadDataSucceded = True
+        print(f"Loaded {len(menu)} menu items and stock successfully.")
+        print("Menu:")
+        for m in menu:
+            print(f"  {m}")
 
-for ingredient_name, ingredient_amount in stock_dict.items():
-    stock_dict[ingredient_name] = rstr.Ingredient(
+for ingredient_name, ingredient_amount in stock.items():
+    stock[ingredient_name] = rstr.Ingredient(
         name=ingredient_name,
         amount=ingredient_amount
     )
 
-raw_menu_list = menu_list.copy() #ข้อมูลดิบ
+raw_menu_list = menu.copy() #ข้อมูลดิบ
 menu_list = []
 
 for menu_item in raw_menu_list:
     recipe_ingredients = {}
     for ingredient_name, required_quantity in menu_item["ingredients"].items():
-        ingredient_object = stock_dict[ingredient_name]
+        ingredient_object = stock[ingredient_name]
         recipe_ingredients[ingredient_object] = np.int64(required_quantity)
 
     menu_object = rstr.Menu(
@@ -109,8 +108,8 @@ for menu_item in raw_menu_list:
     menu_list.append(menu_object)
 
 #main
-while loginSucceded:
-    raw = input("Select action (-1 - 4, 0 for help, -1 for exit): ")
+while loginSucceded and loadDataSucceded:
+    raw = input("\nSelect action (-1 - 4, 0 for help, -1 for exit): ")
 
     try:
         act = int(raw)
