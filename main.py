@@ -166,7 +166,26 @@ while loginSucceded and loadDataSucceded:
                 print("Action cancelled")
         case 2:
             # view statistics
-            pass
+            while True:
+                print("\nView statistics\n1 - Overall Revenue Statistics\n2 - Daily Revenue Statistics\n0 - Back")
+                try:
+                    graph_choice = int(input("Select graph: "))
+                    if graph_choice not in {0, 1, 2}:
+                        raise ValueError("Choose 0, 1, or 2.")
+                except ValueError as e:
+                    print(f"Invalid choice: {e}")
+                    continue
+
+                if graph_choice == 0:
+                    break
+                if graph_choice == 1:
+                    from graph_statistic import show_daily_revenue
+                    show_daily_revenue(record, prices)
+
+                elif graph_choice == 2:
+                    from graph_dailyday import show_menu_sales
+                    show_menu_sales(record, prices)
+                    
         case 3:
             # manage stock - only accesible to managers
             if position != "Manager":
