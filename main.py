@@ -116,7 +116,7 @@ if loginSucceded:
 
 #main
 while loginSucceded and loadDataSucceded:
-    raw = input("\nSelect action (-1 - 4, 0 for help, -1 to exit): ")
+    raw = input("\nSelect action (-1 - 5, 0 for help, -1 to exit): ")
 
     try:
         act = int(raw)
@@ -133,7 +133,7 @@ while loginSucceded and loadDataSucceded:
             break
         case 0:
             # manage stock should only appear to managers when login is implemented
-            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n4 - Add a new menu item\n0 - Show this help message\n-1 - Exit program")
+            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n4 - Add a new menu item\n5 - Check stock & Low stock alert.\n0 - Show this help message\n-1 - Exit program")
         case 1:
             # records data
             print("Record data")
@@ -352,3 +352,19 @@ while loginSucceded and loadDataSucceded:
 
                 except Exception as e:
                     print(f"Invalid menu item\n{e}")
+
+        case 5:
+            #Check stock & Low stock alert.
+            print("\nCheck stock & Low stock alert.")
+            sorted_stock = dict(sorted(stock.items(),key = lambda x:x[1]))
+            low_stock = dict[rstr.Ingredient, np.int64]()
+            for k,v in sorted_stock.items():
+                print(f"{k}:{v}",end=" , ")
+                if v < 20:
+                    low_stock[k] = v
+            if len(low_stock) == 0:
+                print("\n\nNo ingredients are low in stock.")
+            else:
+                print("\n\nLow stock alert.")
+                for k,v in low_stock.items():
+                    print(f"{k} have only {v}")
