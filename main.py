@@ -10,7 +10,7 @@ def saveStock(stock: dict[rstr.Ingredient, np.int64], path: str):
 
 def saveMenu_price(menu: set[rstr.Menu],path: str):
     with open(path, "w", encoding = "utf-8") as sfs:
-        sfs.write(json.dumps(dict([(i.Name,int(i.Price)) for i in menu]), indent=4, ensure_ascii=False))
+        sfs.write(json.dumps(dict([(i.Name, int(i.Price)) for i in menu]), indent = 4, ensure_ascii = False))
 
 #json don't know int.64 and rstr.Ingredient
 #def __init__(self, name: str, price: np.int64, ingredients: dict[Ingredient, np.int64] = {}):
@@ -280,32 +280,30 @@ while loginSucceded and loadDataSucceded:
                 continue
 
             print("\nAdd a new menu item")
-
-
             while True:
                 try:
-                    name = input("\nMenu name (enter nothing to finish): ")
+                    name = input("\nMenu name (enter nothing to cancel): ")
                     if name == "":
                         print("Finished adding the new menu item.")
                         break
                     
                     price = np.int64(input("Price: "))
 
-                    if any(m.Name == name for m in menu):
+                    if name in menu:
                         raise ValueError(f"Menu item \"{name}\" already exists.")
-
                     if price < 0:
                         raise ValueError("Price cannot be negative.")
 
                     ingredients = {}
-
+                    print(f"Ingredients:\n  {", ".join([i.Name for i in sorted(stock)])}")
+                    print("Menu's ingredients (format: <Ingredient name> <quantity>) (enter nothing to finish) (c for cancel):")
                     while True:
-                        raw = input("Ingredient and quantity (format: <Ingredient name> <quantity>) (enter nothing to finish) (c for cancal): ")
+                        raw = input("  ")
                         if raw.lower() == "c":
                             print("cancel")
                             break
                         if raw == "":
-                            if len(ingredients)==0:
+                            if len(ingredients) == 0:
                                 raise ValueError("Menu must have some ingredients") 
                             break
 
@@ -314,11 +312,11 @@ while loginSucceded and loadDataSucceded:
                         quantity = np.int64(quantity)
 
                         if ingre not in stock:
-                            print( f"{ingre} not in stock." )
+                            print(f"{ingre} not in stock.")
                             continue
 
                         if quantity <= 0:
-                            print( "Quantity must be positive." )
+                            print("Quantity must be positive.")
                             continue
 
                         ingredients[ingre] = quantity
