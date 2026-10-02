@@ -359,7 +359,7 @@ while loginSucceded and loadDataSucceded:
             sorted_stock = dict(sorted(stock.items(),key = lambda x:x[1]))
             low_stock = dict[rstr.Ingredient, np.int64]()
             for k,v in sorted_stock.items():
-                print(f"{k}:{v}",end=" , ")
+                print(f"{k}: {v}",end=" , ")
                 if v < 20:
                     low_stock[k] = v
             if len(low_stock) == 0:
@@ -367,4 +367,4 @@ while loginSucceded and loadDataSucceded:
             else:
                 print("\n\nLow stock alert.")
                 for k,v in low_stock.items():
-                    print(f"{k} have only {v}")
+                    print(f"There are only {v} of {k} left")
