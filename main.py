@@ -1,6 +1,7 @@
 from datetime import date as dt
 import json
 import numpy as np
+import matplotlib.pyplot as plt
 import modules.restaurant as rstr
 import modules.errorHandling as err
 
@@ -116,11 +117,11 @@ if loginSucceded:
 
 #main
 while loginSucceded and loadDataSucceded:
-    raw = input("\nSelect action (-1 - 5, 0 for help, -1 to exit): ")
+    raw = input("\nSelect action (-1 - 6, 0 for help, -1 to exit): ")
 
     try:
         act = int(raw)
-        if act < -1 or act > 5:
+        if act < -1 or act > 6:
             raise ValueError("Action is out of range")
     except Exception as e:
         print(f"Invalid action\n{e}")
@@ -133,7 +134,14 @@ while loginSucceded and loadDataSucceded:
             break
         case 0:
             # manage stock should only appear to managers when login is implemented
-            print("1 - Record data\n2 - View statistics\n3 - Manage stock\n4 - Add a new menu item\n5 - Check stock & Low stock alert.\n0 - Show this help message\n-1 - Exit program")
+            print("""1 - Record data
+2 - View statistics
+3 - Manage stock
+4 - Add a new menu item
+5 - Check stock & Low stock alert.
+6 - Quick trends
+0 - Show this help message
+-1 - Exit program""")
         case 1:
             # records data
             print("Record data")
@@ -368,3 +376,24 @@ while loginSucceded and loadDataSucceded:
                 print("\n\nLow stock alert.")
                 for k,v in low_stock.items():
                     print(f"There are only {v} of {k} left")
+
+        case 6:
+            # Quick trends
+            print("Sales trend from the last 5 days")
+            trecord = sorted(record, key = dt.fromisoformat)[-5:]
+            tally = dict[str, np.int64]()
+            for r in trecord:
+                for i in record[r]:
+                    if i not in tally:
+                        tally[i] = np.int64(0)
+                    tally[i] += record[r][i]
+
+            sktally = sorted(tally, key = lambda k : tally[k], reverse = True)
+            plt.rcParams["font.family"] = "Tahoma"
+            plt.bar(sktally, [tally[sk] for sk in sktally])
+            plt.title("Last 5 days sales")
+            plt.xlabel("Menu item")
+            plt.xticks(rotation = 45)
+            plt.ylabel("Sales")
+
+            plt.show()
