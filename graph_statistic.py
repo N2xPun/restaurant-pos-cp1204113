@@ -1,16 +1,17 @@
 from datetime import date
+import numpy as np
 import matplotlib.pyplot as plt
 
-def show_daily_revenue(record: dict[str, dict[str, int]], prices: dict[str, int]) -> None:
+def show_daily_revenue(record: dict[str, dict[str, np.int64]], prices: dict[str, np.int64]) -> None:
     if not record:
         print("No sales records are available.")
         return
 
     ordered_dates = sorted(record, key=date.fromisoformat)
-    revenues = [
+    revenues = np.array([
         sum(int(quantity) * prices[item] for item, quantity in record[day].items())
         for day in ordered_dates
-    ]
+    ])
     date_labels = [date.fromisoformat(day).strftime("%d/%m") for day in ordered_dates]
     x_values = list(range(1, len(ordered_dates) + 1))
 

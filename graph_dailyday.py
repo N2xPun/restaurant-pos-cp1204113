@@ -1,8 +1,8 @@
 from datetime import datetime
-
+import numpy as np
 import matplotlib.pyplot as plt
 
-def show_menu_sales(record: dict[str, dict[str, int]], prices: dict[str, int]) -> None:
+def show_menu_sales(record: dict[str, dict[str, np.int64]], prices: dict[str, np.int64]) -> None:
     while True:
         date_text = input("Enter date to view (DD-MM-YYYY): ").strip()
         try:

@@ -74,12 +74,14 @@ while True:
 menu = set[rstr.Menu]()
 stock = dict[rstr.Ingredient, np.int64]()
 record = dict[str, dict[str, np.int64]]()
+prices = dict[str, np.int64]()
 
 loadDataSucceded = False
 if loginSucceded:
     try:
         with open("data/menu_price.json", encoding="utf-8") as f:
             prices = dict(json.load(f))
+            prices = dict(map(lambda p : (p, np.int64(prices[p])), prices))
 
         with open("data/menu_ingredient.json", encoding="utf-8") as f:
             for name, ingredients_raw in json.load(f).items():
