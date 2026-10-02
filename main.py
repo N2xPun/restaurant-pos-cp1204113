@@ -183,7 +183,7 @@ while loginSucceded and loadDataSucceded:
             if raw != "c" and len(drecord) > 0:
                 record[rdate.isoformat()] = drecord
                 with open("data/amount.json", "w", encoding = "utf-8") as amtfs:
-                    amtfs.write(json.dumps(record, indent = 4, ensure_ascii = False))
+                    amtfs.write(json.dumps(dict([k,dict([k2,int(v2)] for k2,v2 in v.items())]for k,v in record.items()), indent = 4, ensure_ascii = False))
 
                 print(f"Data recorded\nDate {rdate.isoformat()}:")
                 for r in drecord:
